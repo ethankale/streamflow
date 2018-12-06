@@ -20,6 +20,7 @@
 #' @param era.name What time interval?
 #' @param stream.name What stream?
 #' @param export.dir Directory to put the graphs into.
+#' @param plots One of "all" (default), "offsets", "none".
 #' @keywords stream stage discharge stage-discharge flow cfs
 #' @export
 #' @examples 
@@ -30,10 +31,11 @@
 #' export.dir <- './results/offsets/'
 #' find_best_offset(stages, discharges, era.name, stream.name, export.dir)
 
-find_best_offset <- function(stages, discharges, era.name, stream.name, export.dir) {
+find_best_offset <- function(stages, discharges, era.name, stream.name, export.dir,
+                             plots = "all") {
   
-  library(ggplot2)
-  library(dplyr)
+  suppressMessages(library(ggplot2))
+  suppressMessages(library(dplyr))
   
   #################
   # Validation
@@ -50,7 +52,7 @@ find_best_offset <- function(stages, discharges, era.name, stream.name, export.d
   # Plots
   #############
   
-  message(paste("Plotting offsets for", stream.name, era.name ))
+  message(paste("Calculating offsets for", stream.name, era.name ))
   
   d.new <- tibble(stage = stages, discharge = discharges) %>%
     mutate(d.cfs.log = log(discharge))
@@ -82,49 +84,52 @@ find_best_offset <- function(stages, discharges, era.name, stream.name, export.d
   
     offset.stats$r2[i] <- d.r2
     
-    ggplot(d.new.offset, aes(x = discharge,
-                             y = stage.shifted)) +
-      geom_line(aes(x = d.cfs.pred,
-                    y = stage.shifted)) +
-      geom_point(size = 3) +
-      labs(title = paste0(stream.name, " Stage-Discharge"),
-           subtitle = paste0(era.name, " Measurements; ",
-             "E = ", e, 
-             "; R2 = ", round(d.r2, 3)),
-           x = "Discharge (cfs)",
-           y = "Stage - Offset (feet)") +
-      theme_minimal()
-    
-    ggsave(file.path(export.dir,
-                     paste0("stage-discharge-",
-                     era.name, "-offset-", 
-                     i, ".png")),
-           width = 7,
-           height = 4)
+    if (plots == "all") {
+      ggplot(d.new.offset, aes(x = discharge,
+                               y = stage.shifted)) +
+        geom_line(aes(x = d.cfs.pred,
+                      y = stage.shifted)) +
+        geom_point(size = 3) +
+        labs(title = paste0(stream.name, " Stage-Discharge"),
+             subtitle = paste0(era.name, " Measurements; ",
+               "E = ", e, 
+               "; R2 = ", round(d.r2, 3)),
+             x = "Discharge (cfs)",
+             y = "Stage - Offset (feet)") +
+        theme_minimal()
+      
+      ggsave(file.path(export.dir,
+                       paste0("stage-discharge-",
+                       era.name, "-offset-", 
+                       i, ".png")),
+             width = 7,
+             height = 4)
+    }
   }
   
   close(pb)
   
   e.best <- offset.stats$offsets[which.max(offset.stats$r2)]
   
-  ggplot(offset.stats %>% filter(r2 >= median(offset.stats$r2)), aes(x = offsets,
-                           y = r2)) +
-    geom_line() +
-    geom_point() +
-    geom_point(data = offset.stats %>% filter(offsets==e.best),
-               color="red",
-               size = 3)+
-    theme_minimal() +
-    labs(title=paste0(stream.name, " Stage Offset Estimate"),
-         subtitle=paste0(era.name, "; Best e = ", e.best),
-         x = "Offsets (feet)",
-         y = "R2 Values (for log-log regression)") +
-    scale_x_continuous(breaks = seq(0, max(d.new$stage), 0.1))
-  
-  ggsave(paste0(export.dir, "offsets_", era.name, ".png"),
-         width = 7,
-         height = 4)
-  
+  if(!plots == "none") {
+    ggplot(offset.stats %>% filter(r2 >= median(offset.stats$r2)), aes(x = offsets,
+                             y = r2)) +
+      geom_line() +
+      geom_point() +
+      geom_point(data = offset.stats %>% filter(offsets==e.best),
+                 color="red",
+                 size = 3)+
+      theme_minimal() +
+      labs(title=paste0(stream.name, " Stage Offset Estimate"),
+           subtitle=paste0(era.name, "; Best e = ", e.best),
+           x = "Offsets (feet)",
+           y = "R2 Values (for log-log regression)") +
+      scale_x_continuous(breaks = seq(0, max(d.new$stage), 0.1))
+    
+    ggsave(paste0(export.dir, "offsets_", era.name, ".png"),
+           width = 7,
+           height = 4)
+  }
   
   return(offset.stats[offset.stats$offsets == e.best,])
 }

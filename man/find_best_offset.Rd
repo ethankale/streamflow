@@ -4,7 +4,8 @@
 \alias{find_best_offset}
 \title{Estimating Offsets for Log-Log Stage Discharge Relationships}
 \usage{
-find_best_offset(stages, discharges, era.name, stream.name, export.dir)
+find_best_offset(stages, discharges, era.name, stream.name, export.dir,
+  plots = "all")
 }
 \arguments{
 \item{stages}{A numeric vector of stage values, associated with discharges.}
@@ -16,6 +17,8 @@ find_best_offset(stages, discharges, era.name, stream.name, export.dir)
 \item{stream.name}{What stream?}
 
 \item{export.dir}{Directory to put the graphs into.}
+
+\item{plots}{One of "all" (default), "offsets", "none".}
 }
 \description{
 Given paired stage and discharge values, calculate the best stage offset
@@ -30,6 +33,7 @@ this successive approximation until you get a straight line in log-log space.
 
 This function does that, but faster and better.
 
+At each interval the function creates a log-log relationship, then plots it.
 Estimates happen at 0.01 intervals from 0 to just below the minimum measured
 stage value.
 }
@@ -39,7 +43,7 @@ discharges <- c(22, 55, 31, 21)
 era.name <- '2008-2012'
 stream.name <- 'Demo Stream'
 export.dir <- './results/offsets/'
-find_best_offset(stages, discharges, era.name, stream.name)
+find_best_offset(stages, discharges, era.name, stream.name, export.dir)
 }
 \keyword{cfs}
 \keyword{discharge}
