@@ -1,0 +1,10 @@
+Package: streamflow
+Title: Tools for analyzing streamflow stage and discharge
+Version: 0.0.1
+Authors@R: person("Nathaniel", "kale", email = "nathanielkale@gmail.com", role = c("aut", "cre"))
+Description: Tools for analyzing a stream, given discharge and stage measurements, or continuous stage measurements, or both.  Currently the only function assists in finding an appropriate offset when using the USGS Technical Paper 2175 successive approximation method of creating a log-log stage-discharge relationship.
+Depends: R (>= 3.5.0)
+License: MIT
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
